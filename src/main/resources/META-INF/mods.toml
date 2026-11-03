@@ -3,7 +3,7 @@ loaderVersion="[47,)"
 license="MIT"
 [[mods]]
 modId="vanishguard"
-version="0.1.0"
+version="0.2.0"
 displayName="VanishGuard"
 authors="UpperMoon0"
 displayTest="IGNORE_SERVER_VERSION"
