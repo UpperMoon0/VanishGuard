@@ -3,7 +3,7 @@ loaderVersion="[47,)"
 license="MIT"
 [[mods]]
 modId="vanishguard"
-version="0.1.0"
+version="0.2.0"
 displayName="VanishGuard"
 authors="UpperMoon0"
 displayTest="IGNORE_SERVER_VERSION"
@@ -11,7 +11,7 @@ description='''Server-side UUID-configured observer vanish. Not an anti-audit or
 [[dependencies.vanishguard]]
 modId="forge"
 mandatory=true
-versionRange="[47.4.13]"
+versionRange="[47.4.13,)"
 ordering="NONE"
 side="SERVER"
 [[dependencies.vanishguard]]
