@@ -1,6 +1,6 @@
 # VanishGuard
 
-Server-only, administrator-configured presence hiding for **Minecraft 1.20.1 / Forge 47.4.13+**, version **0.1.0**. Forge 47.4.13 is the tested build target; the loader requirement has no upper version cap, but future Forge API changes still need runtime verification. No client-side mod or custom network channel is required. This is not an authentication plugin or an anti-audit tool.
+Server-only, administrator-configured presence hiding for **Minecraft 1.20.1 / Forge 47.4.13+**, version **0.2.0**. Forge 47.4.13 is the tested build target; the loader requirement has no upper version cap, but future Forge API changes still need runtime verification. No client-side mod or custom network channel is required. This is not an authentication plugin or an anti-audit tool.
 
 ## Configuration
 
@@ -42,6 +42,6 @@ Use Java 17:
 ./gradlew --no-daemon test build
 ```
 
-Artifact: `build/libs/vanishguard-1.20.1-0.1.0.jar` (reobfuscated for production Forge). Runtime dependencies: Minecraft 1.20.1 and Forge 47.4.13 or newer (no upper metadata cap). CI also exercises a disposable Forge 47.4.28 server with vanilla protocol clients; inspect that job's result before claiming patch-version runtime compatibility. Install only on the dedicated server, not clients. Never replace a running server's files or restart it without the administrator's maintenance approval.
+Artifact: `build/libs/vanishguard-1.20.1-0.2.0.jar` (reobfuscated for production Forge). Runtime dependencies: Minecraft 1.20.1 and Forge 47.4.13 or newer (no upper metadata cap). CI also exercises a disposable Forge 47.4.28 server with vanilla protocol clients; inspect that job's result before claiming patch-version runtime compatibility. Install only on the dedicated server, not clients. Never replace a running server's files or restart it without the administrator's maintenance approval.
 
 See [verification](docs/verification.md) for measured results and remaining release gates. The source is MIT licensed; the Gradle wrapper retains its upstream license notices. No decompiled Minecraft sources are distributed here.
