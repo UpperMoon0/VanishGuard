@@ -46,7 +46,20 @@ jobs:
             exit 1
           }
 
-          cp "$ROOT/build/libs/vanishguard-1.20.1-0.1.0.jar" "$SERVER/mods/"
+          # Locate the release artifact rather than pinning a version-specific filename.
+          # Fail closed if no runnable JAR exists or multiple candidates are present.
+          mapfile -t production_jars < <(
+            find "$ROOT/build/libs" -maxdepth 1 -type f -name 'vanishguard-1.20.1-*.jar' \
+              ! -name '*-sources.jar' ! -name '*-javadoc.jar' \
+              ! -name '*-dev.jar' ! -name '*-dev-shadow.jar' | sort
+          )
+          if [[ "${#production_jars[@]}" -ne 1 ]]; then
+            echo "Expected exactly one VanishGuard production JAR; found ${#production_jars[@]}" >&2
+            printf 'Candidate: %s\n' "${production_jars[@]}" >&2
+            exit 1
+          fi
+          echo "Installing production JAR: $(basename "${production_jars[0]}")"
+          cp -- "${production_jars[0]}" "$SERVER/mods/"
           cat > "$SERVER/server.properties" <<'PROPERTIES'
           server-ip=127.0.0.1
           server-port=25575
