@@ -1,6 +1,6 @@
 # VanishGuard
 
-Server-only, administrator-configured presence hiding for **Minecraft 1.20.1 / Forge 47.4.13**, version **0.1.0**. No client-side mod or custom network channel is required. This is not an authentication plugin or an anti-audit tool.
+Server-only, administrator-configured presence hiding for **Minecraft 1.20.1 / Forge 47.4.13+**, version **0.1.0**. Forge 47.4.13 is the tested build target; the loader requirement has no upper version cap, but future Forge API changes still need runtime verification. No client-side mod or custom network channel is required. This is not an authentication plugin or an anti-audit tool.
 
 ## Configuration
 
