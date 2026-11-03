@@ -11,7 +11,7 @@ description='''Server-side UUID-configured observer vanish. Not an anti-audit or
 [[dependencies.vanishguard]]
 modId="forge"
 mandatory=true
-versionRange="[47.4.13]"
+versionRange="[47.4.13,)"
 ordering="NONE"
 side="SERVER"
 [[dependencies.vanishguard]]
