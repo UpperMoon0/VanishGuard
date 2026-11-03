@@ -1,0 +1,108 @@
+name: Forge patch runtime smoke
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  forge-patch-smoke:
+    # Uses a disposable GitHub-hosted VM; never touches a live server or private runner.
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: tests/integration/package-lock.json
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build reobfuscated production artifact and run unit tests
+        run: ./gradlew --no-daemon test build
+      - name: Install probe dependencies
+        run: npm ci --prefix tests/integration
+
+      - name: Probe vanilla clients against Forge 47.4.28 on loopback
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$PWD"
+          WORK="$ROOT/.ci/vanishguard-runtime"
+          SERVER="$WORK/server"
+          mkdir -p "$SERVER/mods" "$SERVER/config"
+          installer="$WORK/forge-1.20.1-47.4.28-installer.jar"
+          curl --fail --location --retry 3 --output "$installer" \
+            https://maven.minecraftforge.net/net/minecraftforge/forge/1.20.1-47.4.28/forge-1.20.1-47.4.28-installer.jar
+          echo "585dd6071897becaed3b09bff4c3d9559e0cbc75  $installer" | sha1sum --check
+          (cd "$SERVER" && java -jar "$installer" --installServer) > "$WORK/install.log" 2>&1 || {
+            cat "$WORK/install.log"
+            exit 1
+          }
+
+          cp "$ROOT/build/libs/vanishguard-1.20.1-0.1.0.jar" "$SERVER/mods/"
+          cat > "$SERVER/server.properties" <<'PROPERTIES'
+          server-ip=127.0.0.1
+          server-port=25575
+          online-mode=false
+          enforce-secure-profile=false
+          enable-query=true
+          query.port=25576
+          enable-rcon=false
+          enable-status=true
+          level-type=minecraft:flat
+          spawn-protection=0
+          spawn-monsters=false
+          max-players=10
+          motd=Disposable VanishGuard CI fixture
+          PROPERTIES
+          echo 'eula=true' > "$SERVER/eula.txt"
+          cat > "$SERVER/config/vanishguard.json" <<'CONFIG'
+          {"hiddenUuids":["c6dfdb66-b0fa-3afa-9ecc-2de806cbaece"],"observerMode":true}
+          CONFIG
+
+          (cd "$SERVER" && bash ./run.sh nogui > "$WORK/server.log" 2>&1 < /dev/null) &
+          server_pid=$!
+          cleanup() {
+            kill "$server_pid" 2>/dev/null || true
+            wait "$server_pid" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+
+          ready=0
+          for i in $(seq 1 180); do
+            if grep -q 'Done (' "$WORK/server.log" 2>/dev/null; then
+              ready=1
+              break
+            fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then
+              echo "Forge server exited during startup" >&2
+              tail -160 "$WORK/server.log"
+              exit 1
+            fi
+            sleep 2
+          done
+          if [[ "$ready" -ne 1 ]]; then
+            echo "Forge did not become ready on time" >&2
+            tail -160 "$WORK/server.log"
+            exit 1
+          fi
+          VANISH_TEST_REPORT="$WORK/probe-report.json" node tests/integration/probe.cjs \
+            2>&1 | tee "$WORK/probe.log"
+
+      - name: Preserve isolated runtime diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: forge-47.4.28-vanish-runtime
+          if-no-files-found: ignore
+          retention-days: 3
+          path: |
+            .ci/vanishguard-runtime/*.log
+            .ci/vanishguard-runtime/probe-report.json
